@@ -1,11 +1,11 @@
 name: idkit_gshared
-description: A new Flutter package project.
+description: A convenient global shared data package for Flutter projects.
 version: 0.0.1
-homepage:
+homepage: https://github.com/zhoushuangjian001/idkit_gshared
 
 environment:
-  sdk: ">=2.16.1 <3.0.0"
-  flutter: ">=1.17.0"
+  sdk: '>=2.16.1 <3.0.0'
+  flutter: '>=1.17.0'
 
 dependencies:
   flutter:
