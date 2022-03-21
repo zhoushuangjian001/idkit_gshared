@@ -1,39 +1,155 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+## idkit_gshared
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages). 
+#### 1. Briefly
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages). 
--->
+This package is for global data sharing of Flutter projects. The following is a detailed introduction and use of its methods.
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+#### 2. Use
 
-## Features
+- Preconditions
+  First create a global shared data management object，As follows:
+  ```dart
+  final IDKitGShared gShared = IDKitGShared();
+  ```
+- Basic sharing
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+  ### Register
 
-## Getting started
+  ###### 1.Register int、list、map......
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+  ```dart
+  gShared.register<int>(520);
+  gShared.register<int>(1314, mark: 'love');
+  ```
 
-## Usage
+  ###### 2. Register object
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+  ```dart
+  gShared.register(
+      const TestInfo('Asynchronous registration'),
+  );
+  gShared.register(
+      const TestInfo('Asynchronous registration - Mark'),
+      mark: 'mark',
+  );
+  ```
 
-```dart
-const like = 'sample';
-```
+  ###### 3. Asynchronous registration
 
-## Additional information
+  ```dart
+  gShared.register<Future<String>>(
+      Future.delayed(const Duration(seconds: 1), () {
+      return '110';
+      }),
+  );
+  gShared.register<Future<TestInfo>>(
+      Future.delayed(const Duration(seconds: 1), () {
+      return const TestInfo('120');
+      }),
+      mark: 'mark',
+  );
+  ```
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+  ### Read
+
+  ###### 1. Read int、list、map......
+
+  ```dart
+  gShared.read<int>() -> int?
+  gShared.read<int>(mark: 'love') -> int?
+  ```
+
+  ###### 2. Read object
+
+  ```dart
+  gShared.read<TestInfo>() -> TestInfo?
+  gShared.read<TestInfo>(mark: 'mark') -> TestInfo?
+  ```
+
+  ###### 3. Read data asynchronously
+
+  ```dart
+  FutureBuilder<String>(
+      future: gShared.read<Future<String>>(),
+      initialData: '000',
+      builder: (_, AsyncSnapshot<String> snapshot) {
+      return Text('${snapshot.data}');
+      },
+  ),
+  FutureBuilder<String>(
+      future: gShared.read<Future<String>>(mark: 'mark'),
+      initialData: '000 - mark',
+      builder: (_, AsyncSnapshot<String> snapshot) {
+      return Text('${snapshot.data}');
+      },
+  ),
+  ```
+
+  ### Update data
+
+  ```dart
+  gShared.update<String>((value) => 'I am a baby!');
+  gShared.update<String>((value) => 'I am a baby!',mark:'mark');
+  ```
+
+  ### unRegister
+
+  ```dart
+  gShared.unRegister<String>();
+  gShared.unRegister<String>(mark: 'mark');
+  ```
+
+  or
+
+  ```dart
+  gShared.unRegisterAll();
+  gShared.unRegisterAll(listen: true);
+  ```
+
+- Listen sharing
+
+  ### Register
+
+  ```dart
+  gShared.registerListen<String>();
+  gShared.registerListen<String>(mark: 'mark');
+  ```
+
+  ### Watch
+
+  ```dart
+  StreamBuilder<String?>(
+     stream: gShared.watch<String>(),
+     initialData: 'listen - 0',
+     builder: (_, s) {
+        final String? a = s.data;
+        return Text(a ?? 'listen - 0');
+     },
+  ),
+  StreamBuilder<String?>(
+    stream: gShared.watch<String>(mark: 'mark'),
+    initialData: 'listen - 0',
+    builder: (_, s) {
+        final String? a = s.data;
+        return Text(a ?? 'listen - 0');
+    },
+  )
+  ```
+
+  ### unRegister listen
+
+  ```dart
+  gShared.unRegisterListen<String>();
+  gShared.unRegisterListen<String>(mark: 'mark');
+  ```
+
+  ### Convert
+
+  ```dart
+  gShared.convertListen<int>();
+  gShared.convertListen<int>(mark:'mark');
+  ```
+
+### 3. Summarize
+
+This version of the package covers some of the above methods. If you don't understand anything or don't understand how to use it, you can leave me a message!

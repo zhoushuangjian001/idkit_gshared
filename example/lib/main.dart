@@ -11,29 +11,26 @@ class TestInfo {
 }
 
 void main() {
-  gShared.register<Future<int>>(
-    Future<int>.delayed(const Duration(seconds: 3), () {
-      return 11;
-    }),
-  );
   gShared.register<int>(520);
   gShared.register<int>(1314, mark: 'love');
   gShared.register(
-    Future.delayed(
-      const Duration(seconds: 10),
-      () {
-        return const TestInfo('Asynchronous registration');
-      },
-    ),
+    const TestInfo('Asynchronous registration'),
   );
   gShared.register(
-    Future.delayed(
-      const Duration(seconds: 1),
-      () {
-        return const TestInfo('Asynchronous registration -- Mark');
-      },
-    ),
+    const TestInfo('Asynchronous registration - Mark'),
     mark: 'r_mark',
+  );
+
+  gShared.register<Future<String>>(
+    Future.delayed(const Duration(seconds: 1), () {
+      return '110';
+    }),
+  );
+  gShared.register<Future<TestInfo>>(
+    Future.delayed(const Duration(seconds: 1), () {
+      return const TestInfo('120');
+    }),
+    mark: 'mark',
   );
   runApp(const MyApp());
 }
@@ -67,35 +64,27 @@ class MyHomePage extends StatelessWidget {
         alignment: Alignment.center,
         child: Column(
           children: [
-            FutureBuilder<int>(
-              future: gShared.read<Future<int>>(),
-              initialData: 1010,
-              builder: (_, AsyncSnapshot<int> snapshot) {
+            Text('${gShared.read<int>() ?? 0}'),
+            Text('${gShared.read<int>(mark: 'love') ?? 0}'),
+            Text('${gShared.read<TestInfo>()?.name ?? 0}'),
+            Text('${gShared.read<TestInfo>()?.name ?? 0}'),
+            FutureBuilder<String>(
+              future: gShared.read<Future<String>>(),
+              initialData: '000',
+              builder: (_, AsyncSnapshot<String> snapshot) {
                 return Text('${snapshot.data}');
               },
             ),
-            Text('${gShared.read<int>() ?? 0}'),
-            Text('${gShared.read<int>(mark: 'love') ?? 0}'),
-            FutureBuilder<TestInfo>(
-              future: gShared.read(),
-              initialData: const TestInfo('TestInfo - Default - 111'),
-              builder: (_, AsyncSnapshot<TestInfo> snapshot) {
-                final TestInfo? count = snapshot.data;
-                return Text(count?.name ?? 'TestInfo - Default - 222');
-              },
-            ),
-            FutureBuilder<TestInfo>(
-              future: gShared.read(mark: 'r_mark'),
-              initialData: const TestInfo('TestInfo - Default - 333'),
-              builder: (_, AsyncSnapshot<TestInfo> snapshot) {
-                final TestInfo? count = snapshot.data;
-                return Text(count?.name ?? 'TestInfo - Default - 444');
+            FutureBuilder<String>(
+              future: gShared.read<Future<String>>(mark: 'mark'),
+              initialData: '000 - mark',
+              builder: (_, AsyncSnapshot<String> snapshot) {
+                return Text('${snapshot.data}');
               },
             ),
             ElevatedButton(
               child: const Text('Next Step'),
               onPressed: () {
-                gShared.register<String>('who are you?', mark: 'wz');
                 Navigator.of(context).push(MaterialPageRoute(builder: (_) {
                   return const SecondPage();
                 }));
@@ -120,7 +109,8 @@ class _SecondPageState extends State<SecondPage> {
 
   @override
   Widget build(BuildContext context) {
-    gShared.registerListen<String>(mark: 'listen');
+    gShared.registerListen<String>();
+    gShared.registerListen<String>(mark: 'mark');
     return Scaffold(
       appBar: AppBar(
         title: const Text('idkit_gshared:Multi-layer data sharing'),
@@ -137,7 +127,15 @@ class _SecondPageState extends State<SecondPage> {
               children: [
                 Text(gShared.read<String>(mark: 'wz') ?? 'defaulu value: network'),
                 StreamBuilder<String?>(
-                  stream: gShared.watch<String>(mark: 'listen'),
+                  stream: gShared.watch<String>(),
+                  initialData: 'listen - 0',
+                  builder: (_, s) {
+                    final String? a = s.data;
+                    return Text(a ?? 'listen - 0');
+                  },
+                ),
+                StreamBuilder<String?>(
+                  stream: gShared.watch<String>(mark: 'mark'),
                   initialData: 'listen - 0',
                   builder: (_, s) {
                     final String? a = s.data;
@@ -169,6 +167,10 @@ class _SecondPageState extends State<SecondPage> {
                 ),
                 ElevatedButton(
                   onPressed: () {
+                    gShared.unRegister<String>();
+                    gShared.unRegister<String>(mark: 'mark');
+                    gShared.unRegisterAll();
+                    gShared.unRegisterAll(listen: true);
                     gShared.update<String>((value) => 'I am a baby!');
                   },
                   child: const Text('Update Data'),
@@ -195,6 +197,9 @@ class _ThreePageState extends State<ThreePage> {
   @override
   Widget build(BuildContext context) {
     gShared.convertListen<int>();
+    gShared.unRegisterListen<String>();
+    gShared.unRegisterListen<String>(mark: 'mark');
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Three Page 3'),
